@@ -776,7 +776,7 @@ export default function App() {
       });
     }
 
-    setStructure({ classes: structure.classes, subjects: newSubjects, terms: newTerms, topics: newTopics, criteria: newCriteria, fields: newFields });
+    setStructure({ classes: structure.classes, subjects: newSubjects, terms: newTerms, topics: newTopics, criteria: newCriteria, fields: newFields, yearGroups: structure.yearGroups, departments: structure.departments });
     return { addedCriteria, addedFields };
   };
 
@@ -869,7 +869,7 @@ export default function App() {
         }
       });
 
-      setStructure({ classes: newClasses, subjects: newSubjects, terms: newTerms, topics: newTopics, criteria: newCriteria, fields: newFields });
+      setStructure({ classes: newClasses, subjects: newSubjects, terms: newTerms, topics: newTopics, criteria: newCriteria, fields: newFields, yearGroups: structure.yearGroups, departments: structure.departments });
       setStudentsByClass(newStudentsByClass);
       const parts = [];
       if (addedStudents) parts.push(`${addedStudents} student${addedStudents === 1 ? '' : 's'}`);
@@ -2093,7 +2093,7 @@ function RosterImporter({ onImport }) {
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={'4D\nRichard Corbett\nLena Kim\n\n5K\nTom Baker\nJerry Lee'}
+        placeholder={'5D\nRichard Knox\nYena Kim\n\n5C\nTom Baker\nJerry Lee'}
         rows={6}
         style={{ fontSize: 13, padding: 10, borderRadius: 8, border: `var(--border-width) solid ${LINE}`, fontFamily: 'inherit', resize: 'vertical' }}
       />
@@ -3028,7 +3028,7 @@ function SetupView({ structure, studentsByClass, setupClassId, setSetupClassId, 
                       style={{ fontSize: 11, padding: '3px 6px', borderRadius: 5, border: `var(--border-width) solid ${LINE}`, background: CARD, color: c.yearGroup ? INK : MUTED, width: 92, flexShrink: 0 }}
                     >
                       <option value="">Year group —</option>
-                      {structure.yearGroups.map((yg) => <option key={yg.id} value={yg.name}>{yg.name}</option>)}
+                      {(structure.yearGroups || []).map((yg) => <option key={yg.id} value={yg.name}>{yg.name}</option>)}
                     </select>
                     <IconBtn onClick={(e) => { e.stopPropagation(); removeClass(c.id); }} danger title="Remove class"><Trash2 size={13} /></IconBtn>
                   </div>
@@ -3116,7 +3116,7 @@ function SetupView({ structure, studentsByClass, setupClassId, setSetupClassId, 
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
         <span style={{ fontSize: 12, color: MUTED }} title="One shared list everyone picks from — set the exact spelling once here (e.g. 'Year 4') so it can't drift into 'Y4' / '4' elsewhere.">Year groups:</span>
-        {structure.yearGroups.map((yg) => (
+        {(structure.yearGroups || []).map((yg) => (
           <span key={yg.id} style={{ display: 'flex', alignItems: 'center', gap: 4, border: `var(--border-width) solid ${LINE}`, borderRadius: 999, padding: '3px 9px', fontSize: 12, background: CARD }}>
             {yg.name}
             <IconBtn onClick={() => removeYearGroup(yg.id)} danger title="Remove"><Trash2 size={11} /></IconBtn>
@@ -3127,7 +3127,7 @@ function SetupView({ structure, studentsByClass, setupClassId, setSetupClassId, 
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
         <span style={{ fontSize: 12, color: MUTED }} title="One shared list — groups subjects together (e.g. Technology). Optional; only useful in secondary/international settings.">Departments:</span>
-        {structure.departments.map((d) => (
+        {(structure.departments || []).map((d) => (
           <span key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 4, border: `var(--border-width) solid ${LINE}`, borderRadius: 999, padding: '3px 9px', fontSize: 12, background: CARD }}>
             {d.name}
             <IconBtn onClick={() => removeDepartment(d.id)} danger title="Remove"><Trash2 size={11} /></IconBtn>
@@ -3161,7 +3161,7 @@ function SetupView({ structure, studentsByClass, setupClassId, setSetupClassId, 
                       style={{ fontSize: 11, padding: '3px 6px', borderRadius: 5, border: `var(--border-width) solid ${LINE}`, background: CARD, color: s.department ? INK : MUTED, width: 100, flexShrink: 0 }}
                     >
                       <option value="">Department —</option>
-                      {structure.departments.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
+                      {(structure.departments || []).map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
                     </select>
                     <IconBtn onClick={(e) => { e.stopPropagation(); removeSubject(s.id); }} danger title="Remove subject"><Trash2 size={13} /></IconBtn>
                   </div>
