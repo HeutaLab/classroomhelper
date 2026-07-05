@@ -9,7 +9,97 @@
   <body>
     <div id="root"></div>
     <script>
-</script>
+// storage-polyfill.js
+//
+// Drop-in replacement for the `window.storage` API the app was built against
+// (that API only exists inside Claude.ai's artifact runtime — it doesn't
+// exist in a normal browser, including your Vite build on the iPads).
+//
+// This version uses the browser's own localStorage instead. That means:
+//   - Each device keeps its own data, fully independently (which is what
+//     you said you want — no syncing between iPads).
+//   - Data survives page reloads and closing/reopening the browser, same
+//     as any normal website's saved data.
+//   - Data does NOT survive: clearing Safari history/website data, using
+//     Private Browsing, or switching to a different browser/device.
+//     Because of that, treat "Export workbook" as your real backup —
+//     export periodically, the same way you'd back up anything else that
+//     only lives in one place.
+//
+// SETUP: put this file anywhere in your Vite project (e.g. src/storage-polyfill.js),
+// then import it as the FIRST line of your app's entry file — before the
+// import that pulls in the App component — so window.storage exists before
+// the app's first render tries to use it. For example, at the top of
+// main.jsx or index.jsx:
+//
+//   import './storage-polyfill.js';
+//   import App from './App.jsx';
+//   ...
+
+(function () {
+  const PREFIX = 'classroomhelper:';
+
+  // "shared" vs "personal" only matters when more than one person can see
+  // the same data (that was the case in the old Claude.ai artifact link).
+  // On one independent device there's nobody else to share with — both
+  // just live in localStorage, kept in separate namespaces only so it's
+  // easy to tell them apart later if this ever needs real cross-device sync.
+  function fullKey(key, shared) {
+    return `${PREFIX}${shared ? 'shared' : 'personal'}:${key}`;
+  }
+
+  window.storage = {
+    async get(key, shared = true) {
+      try {
+        const raw = localStorage.getItem(fullKey(key, shared));
+        if (raw === null) return null;
+        return { key, value: raw, shared };
+      } catch (e) {
+        console.error('storage.get failed', key, e);
+        return null;
+      }
+    },
+
+    async set(key, value, shared = true) {
+      try {
+        localStorage.setItem(fullKey(key, shared), value);
+        return { key, value, shared };
+      } catch (e) {
+        // Most likely cause on iPad: localStorage is full (rare, but
+        // possible on one device with a lot of photos), or the browser is
+        // blocking storage (e.g. Private Browsing mode in older Safari
+        // versions throws here even when storage isn't actually full).
+        console.error('storage.set failed — data was NOT saved', key, e);
+        return null;
+      }
+    },
+
+    async delete(key, shared = true) {
+      try {
+        localStorage.removeItem(fullKey(key, shared));
+        return { key, deleted: true, shared };
+      } catch (e) {
+        console.error('storage.delete failed', key, e);
+        return null;
+      }
+    },
+
+    async list(prefix = '', shared = true) {
+      try {
+        const base = fullKey('', shared);
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(base + prefix)) keys.push(k.slice(base.length));
+        }
+        return { keys, prefix, shared };
+      } catch (e) {
+        console.error('storage.list failed', e);
+        return null;
+      }
+    },
+  };
+})();</script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
